@@ -11,6 +11,7 @@ std::vector<float> NaiveGemmOMP(const std::vector<float>& a,
         for (int k = 0; k < n; k++) {
             int i_mult_n = i * n;
             int k_mult_n = k * n;
+#pragma omp simd
             for (int j = 0; j < n - 7; j += 8) {
                 c[i_mult_n + j] += a[i_mult_n + k] * b[k_mult_n + j];
                 c[i_mult_n + (j + 1)] += a[i_mult_n + k] * b[k_mult_n + (j + 1)];
