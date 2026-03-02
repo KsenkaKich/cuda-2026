@@ -1,11 +1,11 @@
 #include "block_gemm_omp.h"
-#define BLOCK_WIDTH 1024
-#define BLOCK_HEIGHT 2
+#include <algorithm>
 
 std::vector<float> BlockGemmOMP(const std::vector<float>& a,
     const std::vector<float>& b,
     int n) {
-
+    const int BLOCK_WIDTH = n;
+    const int BLOCK_HEIGHT = std::min(4, n);
     std::vector<float> c(n * n);
 
 #pragma omp parallel for
