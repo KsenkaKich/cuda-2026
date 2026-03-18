@@ -42,7 +42,7 @@ std::vector<float> GeluCUDA(const std::vector<float>& input)
 
     gelu_kernel <<<num_blocks, block_size>>> (input_gpu, output_gpu, size);
 
-    static std::vector<float> output(size);
+    std::vector<float> output(size);
     cudaMemcpy(output.data(), output_gpu, bytes, cudaMemcpyDeviceToHost);
 
     if(run == 5)
