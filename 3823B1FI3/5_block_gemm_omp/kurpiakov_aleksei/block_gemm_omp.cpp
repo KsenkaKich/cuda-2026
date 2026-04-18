@@ -1,7 +1,7 @@
 #pragma GCC optimize("O3,fast-math,unroll-loops")
 #pragma GCC target("avx2,fma")
 
-#include "block_gemm_cuda.h"
+#include "block_gemm_omp.h"
 
 std::vector<float> BlockGemmOMP(const std::vector<float>& a,
                                  const std::vector<float>& b,
