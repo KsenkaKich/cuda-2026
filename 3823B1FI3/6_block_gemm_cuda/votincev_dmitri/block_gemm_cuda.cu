@@ -6,7 +6,7 @@
 
 
 
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 64
 
 #define N 4096
 
@@ -145,9 +145,3 @@ std::vector<float> BlockGemmCUDA(const std::vector<float>& a,
 
     return answer;
 }
-
-
-
-
-
-
