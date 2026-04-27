@@ -33,7 +33,7 @@ std::vector<float> GemmCUBLAS(const std::vector<float>& a, const std::vector<flo
     const float alpha = 1.0f;
     const float beta = 0.0f;
     
-    cublasSgemm(handle, CUBLAS_OP_T, CUBLAS_OP_T, n, n, n, &alpha, d_b, n, d_a, n, &beta, d_c, n);
+    cublasSgemm(handle, CUBLAS_OP_T, CUBLAS_OP_T, n, n, n, &alpha, d_a, n, d_b, n, &beta, d_c, n);
     
     std::vector<float> c(n * n);
     cublasGetMatrix(n, n, sizeof(float), d_c, n, c.data(), n);
