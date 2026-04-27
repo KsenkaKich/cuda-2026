@@ -534,9 +534,9 @@ std::vector<float> GeluOCL(const std::vector<float>& input, int platform) {
 |3823B1FI3|kichanova_ksenia|0.1218|1|
 |3823B1FI3|baldin_andrew|0.1260|2|
 |3823B1FI3|kutergin_valentin|0.1268|3|
+|3823B1FI3|votincev_dmitri|0.1445|4|
 |**FAST**|**FAST**|**0.1469**|**-**|
 |**REF**|**REF**|**0.7454**|**-**|
-|3823B1FI3|votincev_dmitri|TEST FAILED|-|
 
 ## 7_gemm_cublas (4096 elements)
 |Group|Name|Result|Rank|
@@ -582,7 +582,7 @@ std::vector<float> GeluOCL(const std::vector<float>& input, int platform) {
 |3823B1FI3|papulina_yuliya|3/9|147|
 |3823B1FI3|pylaeva_svetlana|3/9|141|
 |3823B1FI3|romanov_artem|5/9|281|
-|3823B1FI3|votincev_dmitri|3/9|166|
+|3823B1FI3|votincev_dmitri|4/9|224|
 |3823B1FI3|zavyalov_alexey|5/9|264|
 
 Passed: 0
