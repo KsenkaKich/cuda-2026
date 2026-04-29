@@ -569,23 +569,23 @@ std::vector<float> GeluOCL(const std::vector<float>& input, int platform) {
 |Group|Name|Result|Rank|
 |-----|----|------|----|
 |**FAST**|**FAST**|**0.1449**|**-**|
+|3823B1FI3|kichanova_ksenia|0.1514|3|
 |3823B1FI3|levonychev_ivan|0.2502|1|
 |3823B1FI3|baldin_andrew|0.2518|2|
 |**REF**|**REF**|**0.2986**|**-**|
-|3823B1FI3|kichanova_ksenia|TEST FAILED|-|
 
 # Tasks Done
 ## 3823B1FI3
 |Group|Name|Passed|Score|
 |-----|----|------|-----|
-|3823B1FI3|baldin_andrew|**9/9**|**524**|
+|3823B1FI3|baldin_andrew|**9/9**|**523**|
 |3823B1FI3|chacshin_vladimir|3/9|140|
 |3823B1FI3|gutyansky_alexey|3/9|154|
-|3823B1FI3|kichanova_ksenia|7/9|398|
+|3823B1FI3|kichanova_ksenia|8/9|460|
 |3823B1FI3|kurpiakov_aleksei|5/9|275|
 |3823B1FI3|kurpiakov_alexei|2/9|105|
 |3823B1FI3|kutergin_valentin|6/9|340|
-|3823B1FI3|levonychev_ivan|**9/9**|**505**|
+|3823B1FI3|levonychev_ivan|**9/9**|**504**|
 |3823B1FI3|lukin_ivan|4/9|211|
 |3823B1FI3|papulina_yuliya|3/9|146|
 |3823B1FI3|pylaeva_svetlana|3/9|140|
