@@ -3,6 +3,7 @@
 #include <CL/cl.h>
 #include <vector>
 #include <cstdio>
+#include <algorithm>
 
 const char* gelu_kernel_source = R"(
 __kernel void gelu_kernel(__global const float* input,
@@ -15,26 +16,29 @@ __kernel void gelu_kernel(__global const float* input,
     float x3 = x * x * x;
     float p = 0.7978845608028654f * (x + 0.044715f * x3);
     
-    float exp_2p = exp(2.0f * p);
-    float tanh_approx = (exp_2p - 1.0f) / (exp_2p + 1.0f);
-    
-    output[idx] = 0.5f * x * (1.0f + tanh_approx);
+    // Более стабильная формула
+    output[idx] = x / (1.0f + exp(-2.0f * p));
 }
 )";
 
 static cl_context context = nullptr;
 static cl_command_queue queue = nullptr;
 static cl_kernel kernel = nullptr;
-static cl_mem d_input = nullptr;
-static cl_mem d_output = nullptr;
-static size_t allocated = 0;
 static cl_device_id device = nullptr;
 static bool initialized = false;
+
+static cl_mem d_input = nullptr;
+static cl_mem d_output = nullptr;
+static size_t current_buffer_size = 0;
 
 std::vector<float> GeluOCL(const std::vector<float>& input, int platform) {
     const size_t n = input.size();
     const size_t bytes = n * sizeof(float);
     cl_int err;
+    
+    if (n == 0) {
+        return std::vector<float>();
+    }
     
     if (!initialized) {
         cl_platform_id platforms[32];
@@ -71,11 +75,17 @@ std::vector<float> GeluOCL(const std::vector<float>& input, int platform) {
         
         queue = clCreateCommandQueueWithProperties(context, device, nullptr, &err);
         if (err != CL_SUCCESS || queue == nullptr) {
+            clReleaseContext(context);
+            context = nullptr;
             return std::vector<float>();
         }
         
         cl_program program = clCreateProgramWithSource(context, 1, &gelu_kernel_source, nullptr, &err);
         if (err != CL_SUCCESS || program == nullptr) {
+            clReleaseCommandQueue(queue);
+            queue = nullptr;
+            clReleaseContext(context);
+            context = nullptr;
             return std::vector<float>();
         }
         
@@ -85,12 +95,20 @@ std::vector<float> GeluOCL(const std::vector<float>& input, int platform) {
             clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(build_log), build_log, nullptr);
             fprintf(stderr, "OpenCL build error:\n%s\n", build_log);
             clReleaseProgram(program);
+            clReleaseCommandQueue(queue);
+            queue = nullptr;
+            clReleaseContext(context);
+            context = nullptr;
             return std::vector<float>();
         }
         
         kernel = clCreateKernel(program, "gelu_kernel", &err);
         if (err != CL_SUCCESS || kernel == nullptr) {
             clReleaseProgram(program);
+            clReleaseCommandQueue(queue);
+            queue = nullptr;
+            clReleaseContext(context);
+            context = nullptr;
             return std::vector<float>();
         }
         
@@ -98,9 +116,15 @@ std::vector<float> GeluOCL(const std::vector<float>& input, int platform) {
         initialized = true;
     }
     
-    if (allocated < bytes) {
-        if (d_input != nullptr) clReleaseMemObject(d_input);
-        if (d_output != nullptr) clReleaseMemObject(d_output);
+    if (bytes > current_buffer_size) {
+        if (d_input) {
+            clReleaseMemObject(d_input);
+            d_input = nullptr;
+        }
+        if (d_output) {
+            clReleaseMemObject(d_output);
+            d_output = nullptr;
+        }
         
         d_input = clCreateBuffer(context, CL_MEM_READ_ONLY, bytes, nullptr, &err);
         if (err != CL_SUCCESS || d_input == nullptr) {
@@ -109,10 +133,12 @@ std::vector<float> GeluOCL(const std::vector<float>& input, int platform) {
         
         d_output = clCreateBuffer(context, CL_MEM_WRITE_ONLY, bytes, nullptr, &err);
         if (err != CL_SUCCESS || d_output == nullptr) {
+            clReleaseMemObject(d_input);
+            d_input = nullptr;
             return std::vector<float>();
         }
         
-        allocated = bytes;
+        current_buffer_size = bytes;
     }
     
     err = clEnqueueWriteBuffer(queue, d_input, CL_TRUE, 0, bytes, input.data(), 0, nullptr, nullptr);
@@ -126,11 +152,12 @@ std::vector<float> GeluOCL(const std::vector<float>& input, int platform) {
     err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_output);
     if (err != CL_SUCCESS) return std::vector<float>();
     
-    err = clSetKernelArg(kernel, 2, sizeof(int), &n);
+    int n_int = static_cast<int>(n);
+    err = clSetKernelArg(kernel, 2, sizeof(int), &n_int);
     if (err != CL_SUCCESS) return std::vector<float>();
     
-    size_t global_size = n;
     size_t local_size = 256;
+    size_t global_size = ((n + local_size - 1) / local_size) * local_size;
     
     err = clEnqueueNDRangeKernel(queue, kernel, 1, nullptr, &global_size, &local_size, 0, nullptr, nullptr);
     if (err != CL_SUCCESS) {
